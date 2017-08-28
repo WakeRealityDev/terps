@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_VERBOSE_MAKEFILE on)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include(Compilers)
 
-set(GLK "glktermw" CACHE STRING "The Glk implementation to build against.")
+# set default Glk here
+set(GLK "remglk" CACHE STRING "The Glk implementation to build against.")
 
 add_subdirectory(${GLK})
 
@@ -13,7 +15,7 @@ option(WITH_AGILITY "Enable the agility interpreter." ON)
 option(WITH_ALAN2 "Enable the alan2 interpreter." ON)
 option(WITH_ALAN3 "Enable the alan3 interpreter." ON)
 option(WITH_BOCFEL "Enable the bocfel interpreter." ON)
-option(WITH_FROTZ "Enable the frotz interpreter." ON)
+# option(WITH_FROTZ "Enable the frotz interpreter." ON)
 option(WITH_GEAS "Enable the geas interpreter." ON)
 option(WITH_GIT "Enable the git interpreter." ON)
 option(WITH_GLULXE "Enable the glulxe interpreter." ON)
@@ -25,7 +27,16 @@ option(WITH_NITFOL "Enable the nitfol interpreter." ON)
 option(WITH_SCARE "Enable the scare interpreter." ON)
 option(WITH_SCOTT "Enable the scott interpreter." ON)
 
-function(terp target)
+include(Android_Studio_NDK)
+
+function(terp targetraw)
+  if(NAME_EXECUTABLE_AS_DYNLIB)
+     # rewrite target variable because Android APK requires it to masquerade as a dynamic library
+     set(target "lib_app_${targetraw}.so")
+  else()
+     set(target "${targetraw}")
+  endif()
+
   set(options C99 LTO MATH)
   set(oneval)
   set(multival SRCS INCLUDE_DIRS MACROS LIBS)
@@ -45,8 +56,10 @@ function(terp target)
   if(TERP_MATH)
     target_link_libraries(${target} m)
   endif()
+  message("!**!!**!!**!!**! function terp install ${target}")
   install(TARGETS ${target} DESTINATION libexec/gargoyle)
 endfunction()
+
 
 add_subdirectory(tads)
 
@@ -166,7 +179,7 @@ endif()
 
 # ------------------------------------------------------------------------------
 #
-# Git 1.3.3
+# Git 1.3.5
 #
 # Reworked startup code to redirect errors to Glk windows.
 #
